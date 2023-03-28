@@ -1,6 +1,6 @@
 ﻿namespace Common.Enums;
 
-public enum SkiSlopeCondition : byte
+public enum SkiSlopeCondition
 {
     PERFECT = 1,
     BAD = 2,

@@ -1,0 +1,184 @@
+﻿@using Common.Models;
+<style>
+    body {
+        background-image: url("https://img.freepik.com/free-photo/travel-concept-with-landmarks_23-2149153256.jpg?w=2000");
+        background-size: auto;
+    }
+
+    table {
+        background-color: snow;
+        margin-left: auto;
+        margin-right: auto;
+        border-style: solid;
+        width: 50%;
+    }
+
+    h1 {
+        font-family: 'Maiandra GD';
+        color: snow;
+        text-align: center;
+        vertical-align: middle;
+        font-size: 50px;
+    }
+
+    td, tr {
+        font-family: 'Maiandra GD';
+        font-size: 24px;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    h3 {
+        font-family: 'Maiandra GD';
+        font-size: 30px;
+        text-align: center;
+        vertical-align: middle;
+        color: #ff1a1a;
+    }
+
+    input {
+        height: 30px;
+        text-align: center;
+        vertical-align: middle;
+        font-family: 'Times New Roman';
+        font-size: medium;
+    }
+
+        input.check {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+    a {
+        color: #1cc49d;
+    }
+
+        a.option {
+            font-size: 140%;
+            padding: 3px;
+            background-color: black;
+            margin: 4px;
+        }
+
+    input[type=radio] {
+        border: 0px;
+        width: 15%;
+        height: 2em;
+    }
+
+    input.submit {
+        color: #1cc49d;
+        background-color: #1b2f31;
+        border-radius: 50px;
+        justify-content: center;
+        align-items: center;
+        height: 3em;
+        width: 8em;
+        font-size: large;
+        font-weight: 600;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+
+    div.grid-container {
+        background-color: snow;
+        display: grid;
+        padding: 10px;
+        border-style: solid;
+        margin: 10px;
+        width: auto;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    div.grid-item {
+        font-family: 'Maiandra GD';
+        font-size: 30px;
+        text-align: center;
+        display: inline-grid;
+        background-color: cornflowerblue;
+        border-style: solid;
+        margin: 1px;
+    }
+
+</style>
+
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<div class="grid-container">
+    @{
+        <div class="grid-item" style="grid-column:1; grid-row:1">
+            Id
+        </div>
+        <div class="grid-item" style="grid-column:2; grid-row:1">
+            Place
+        </div>
+        <div class="grid-item" style="grid-column:3; grid-row:1">
+            Date
+        </div>
+        <div class="grid-item" style="grid-column:4; grid-row:1">
+            Number
+        </div>
+        <div class="grid-item" style="grid-column:5; grid-row:1">
+            Name
+        </div>
+        <div class="grid-item" style="grid-column:6; grid-row:1">
+            Condition
+        </div>
+        <div class="grid-item" style="grid-column:7; grid-row:1">
+            Details
+        </div>
+        <div class="grid-item" style="grid-column:8; grid-row:1">
+            Temperature
+        </div>
+        <div class="grid-item" style="grid-column:9; grid-row:1">
+            WindSpeed
+        </div>
+        <div class="grid-item" style="grid-column:10; grid-row:1">
+            Clouds
+        </div>
+        int r = 10;
+
+        foreach (SkiSlopeState skiSlope in ViewBag.SkiSlopes)
+        {
+            <div class="grid-item" style="grid-column:1; grid-row:@r">
+                @skiSlope.Id
+            </div>
+            <div class="grid-item" style="grid-column:2; grid-row:@r">
+                @skiSlope.Place
+            </div>
+            <div class="grid-item" style="grid-column:3; grid-row:@r">
+                @skiSlope.Date
+            </div>
+            <div class="grid-item" style="grid-column:4; grid-row:@r">
+                @skiSlope.Number
+            </div>
+            <div class="grid-item" style="grid-column:5; grid-row:@r">
+                @skiSlope.Name
+            </div>
+            <div class="grid-item" style="grid-column:6; grid-row:@r">
+                @skiSlope.Condition
+            </div>
+            <div class="grid-item" style="grid-column:7; grid-row:@r">
+                @skiSlope.Details
+            </div>
+            <div class="grid-item" style="grid-column:8; grid-row:@r">
+                @skiSlope.Weather.Temperature
+            </div>
+            <div class="grid-item" style="grid-column:9; grid-row:@r">
+                @skiSlope.Weather.WindSpeed
+            </div>
+            <div class="grid-item" style="grid-column:10; grid-row:@r">
+                @skiSlope.Weather.Clouds
+            </div>
+            r++;
+        }
+    }
+
+
+</div>

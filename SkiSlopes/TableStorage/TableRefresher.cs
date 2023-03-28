@@ -7,55 +7,46 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 using System.Fabric;
 
-namespace Persister.Storage
+namespace TableStorage;
+
+public class TableRefresher : BackgroundService
 {
-    public class TableRefresher : BackgroundService
+    private static async Task AddToTableAsync(List<SkiSlopeStateTable> skiSlopeStates)
     {
-        public const string ConnectionString = "UseDevelopmentStorage=true";
+        CloudStorageAccount storageAccount = CloudStorageAccount.Parse(TableStorageService.ConnectionString);
+        CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+        CloudTable table = tableClient.GetTableReference("SkiSlopeState");
+        await table.CreateIfNotExistsAsync();
 
-        private static async Task AddToTableAsync(List<SkiSlopeState> skiSlopeStates)
+        foreach (SkiSlopeStateTable skiSlopeState in skiSlopeStates)
+            await table.ExecuteAsync(TableOperation.InsertOrReplace(skiSlopeState));
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
         {
-            TableQuery<SkiSlopeState> tableQuery = new TableQuery<SkiSlopeState>();
+            FabricClient fabricClient = new();
+            int partitionsNumber = (await fabricClient
+                .QueryManager
+                .GetPartitionListAsync(new Uri(ServiceFabricConstants.Persister))).Count;
+            int index = 0;
 
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(ConnectionString);
-            CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
-            CloudTable table = tableClient.GetTableReference("SkiSlopeState");
-            await table.CreateIfNotExistsAsync();
-
-            foreach (SkiSlopeState entity in await table.ExecuteQuerySegmentedAsync(tableQuery, default))
+            for (int i = 0; i < partitionsNumber; i++, index++)
             {
-                Console.WriteLine("{0}, {1}\t{2}", entity.PartitionKey, entity.RowKey, entity.Place);
-            }
+                IPersister proxy = ServiceProxy.Create<IPersister>(
+                    new Uri(ServiceFabricConstants.Persister),
+                    new ServicePartitionKey(index % partitionsNumber));
 
-            foreach (SkiSlopeState skiSlopeState in skiSlopeStates)
-                await table.ExecuteAsync(TableOperation.InsertOrReplace(skiSlopeState));
-        }
+                List<Common.Models.SkiSlopeState> slopes = await proxy.GetAllSkiSlopeStatesReportedBeforeProvidedTimestampAsync(DateTime.UtcNow.AddSeconds(-30));
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                FabricClient fabricClient = new();
-                int partitionsNumber = (await fabricClient
-                    .QueryManager
-                    .GetPartitionListAsync(new Uri(ServiceFabricConstants.Persister))).Count;
-                int index = 0;
-
-                for (int i = 0; i < partitionsNumber; i++, index++)
-                {
-                    IPersister proxy = ServiceProxy.Create<IPersister>(
-                        new Uri(ServiceFabricConstants.Persister),
-                        new ServicePartitionKey(index % partitionsNumber));
-
-                    List<Common.Models.SkiSlopeState> slopes = await proxy.GetAllSkiSlopeStatesReportedBeforeProvidedTimestampAsync(DateTime.UtcNow.AddSeconds(30));
-
+                if (slopes.Count != 0)
                     await AddToTableAsync(slopes
-                        .Select(slope => new SkiSlopeState(slope))
+                        .Select(slope => new SkiSlopeStateTable(slope))
                         .ToList());
-                }
-
-                await Task.Delay(10000, stoppingToken);
             }
+
+            await Task.Delay(10000, stoppingToken);
         }
     }
 }

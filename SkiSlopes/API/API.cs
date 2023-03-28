@@ -11,7 +11,8 @@ using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Microsoft.ServiceFabric.Data;
-using Persister.Storage;
+using Common.Interfaces;
+using TableStorage;
 
 namespace API
 {

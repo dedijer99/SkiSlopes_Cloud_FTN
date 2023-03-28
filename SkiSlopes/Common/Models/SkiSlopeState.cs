@@ -24,6 +24,8 @@ public class SkiSlopeState
     public string Details { get; set; }
     [DataMember]
     public Weather Weather { get; set; }
+    [DataMember]
+    public bool IsMigrated { get; set; }
 
     // Constructors
 
@@ -36,6 +38,7 @@ public class SkiSlopeState
         Name = name;
         Condition = condition;
         Details = details;
+        IsMigrated = false;
     }
 
     public SkiSlopeState()

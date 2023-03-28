@@ -9,7 +9,7 @@ using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using System.Net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.ComponentModel;
+using TableStorage;
 
 namespace Persister;
 
@@ -20,20 +20,16 @@ internal sealed class Persister : StatefulService, IPersister
 {
     private const string AllSkiSlopesStates = "weatherSlopeStates";
     private IReliableDictionary2<Guid, SkiSlopeState> _skiSlopeStates;
-    private readonly HttpClient _httpClient;
 
-    public Persister(
-        StatefulServiceContext context)
+    public Persister(StatefulServiceContext context)
         : base(context)
-    {
-        _httpClient = new HttpClient();
-    }
+    { }
 
     public async Task AddSkiSlopeStateAsync(SkiSlopeState skiSlopeState)
     {
         _skiSlopeStates = await StateManager.GetOrAddAsync<IReliableDictionary2<Guid, SkiSlopeState>>(AllSkiSlopesStates);
         using ITransaction transaction = StateManager.CreateTransaction();
-        skiSlopeState.Weather = await GetWeatherForPlaceAsync(skiSlopeState.Place);
+        skiSlopeState.Weather = GetWeatherForPlaceAsync(skiSlopeState.Place)!;
         await _skiSlopeStates.AddAsync(transaction, skiSlopeState.Id, skiSlopeState);
         await transaction.CommitAsync();
     }
@@ -46,8 +42,11 @@ internal sealed class Persister : StatefulService, IPersister
         while (await enumerator.MoveNextAsync(default))
         {
             KeyValuePair<Guid, SkiSlopeState> current = enumerator.Current;
-            if (current.Value.Date < dateTime)
+            if (current.Value.Date < dateTime && !current.Value.IsMigrated)
+            {
                 skiSlopeStatesList.Add(current.Value);
+                current.Value.IsMigrated = true;
+            }
         }
 
         return skiSlopeStatesList;
@@ -77,7 +76,10 @@ internal sealed class Persister : StatefulService, IPersister
         return skiSlopeStatesList;
     }
 
-    public async Task<Weather> GetWeatherForPlaceAsync(string skiSlopePlace)
+    public async Task<List<SkiSlopeState>> GetAllHistoryOfSkiSlopeStatesAsync() =>
+        await TableStorageService.GetAllSkiSlopeStates();
+
+    public static Weather? GetWeatherForPlaceAsync(string skiSlopePlace)
     {
         string url = string.Format("https://api.openweathermap.org/data/2.5/weather?q={0}&appid=ee89cb80a57b008a5ca9b94bd300f41b", skiSlopePlace);
 
@@ -86,17 +88,16 @@ internal sealed class Persister : StatefulService, IPersister
         double clouds;
         try
         {
-            //Weather? weather = await _httpClient.GetFromJsonAsync<Weather>(url);
-            var client = new WebClient();
-            var content = client.DownloadString(url);
+            WebClient client = new();
+            string content = client.DownloadString(url);
 
-            var obj = JsonConvert.DeserializeObject<JObject>(content);
+            JObject? obj = JsonConvert.DeserializeObject<JObject>(content);
 
-            double tempInKelvin = Double.Parse(obj["main"]["temp"].ToString());
+            double tempInKelvin = double.Parse(obj["main"]["temp"].ToString());
             temperature = Math.Round(tempInKelvin - 273.15, 2);
 
-            windspeed = Double.Parse(obj["wind"]["speed"].ToString());
-            clouds = Double.Parse(obj["clouds"]["all"].ToString());
+            windspeed = double.Parse(obj["wind"]["speed"].ToString());
+            clouds = double.Parse(obj["clouds"]["all"].ToString());
 
             return new Weather(temperature, clouds, windspeed);
         }
