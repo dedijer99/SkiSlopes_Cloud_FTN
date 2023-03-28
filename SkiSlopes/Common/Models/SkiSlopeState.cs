@@ -1,4 +1,5 @@
 ﻿using Common.Enums;
+using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 
 namespace Common.Models;
@@ -6,13 +7,13 @@ namespace Common.Models;
 public class SkiSlopeState
 {
     // Properties
-
+    [Key]
     [DataMember]
     public Guid Id { get; set; }
     [DataMember]
     public string Place { get; set; }
     [DataMember]
-    public string Date { get; set; }
+    public DateTime Date { get; set; }
     [DataMember]
     public int Number { get; set; }
     [DataMember]
@@ -21,10 +22,12 @@ public class SkiSlopeState
     public SkiSlopeCondition Condition { get; set; }
     [DataMember]
     public string Details { get; set; }
+    [DataMember]
+    public Weather Weather { get; set; }
 
     // Constructors
 
-    public SkiSlopeState(string place, string date, int number, string name, SkiSlopeCondition condition, string details)
+    public SkiSlopeState(string place, DateTime date, int number, string name, SkiSlopeCondition condition, string details)
     {
         Id = Guid.NewGuid();
         Place = place;

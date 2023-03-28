@@ -1,4 +1,6 @@
 ﻿using API.Models;
+using Common.Constants;
+using Common.Helpers;
 using Common.Interfaces;
 using Common.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -10,35 +12,52 @@ namespace API.Controllers;
 
 public class SkiSlopeStateController : Controller
 {
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
-        return View();
-    }
+        List<SkiSlopeState> skiSlopeStates = new();
 
-    [HttpPost("SkiSlopeState/Add")]
-    public async Task<IActionResult> AddSkiSlopeStateAsync(SkiSlopeRequest request)
-    {
         FabricClient fabricClient = new();
         int partitionsNumber = (await fabricClient
             .QueryManager
-            .GetPartitionListAsync(new Uri("fabric:/SkiSlopes/Persister"))).Count;
+            .GetPartitionListAsync(new Uri(ServiceFabricConstants.Persister))).Count;
         int index = 0;
 
         for (int i = 0; i < partitionsNumber; i++, index++)
         {
             IPersister proxy = ServiceProxy.Create<IPersister>(
-                new Uri("fabric:/SkiSlopes/Persister"), 
+                new Uri(ServiceFabricConstants.Persister),
                 new ServicePartitionKey(index % partitionsNumber));
 
-            await proxy.AddSkiSlopeState(new SkiSlopeState(
+            var slopes = await proxy.GetAllSkiSlopeStatesAsync();
+
+            skiSlopeStates.AddRange(slopes);
+        }
+
+        ViewBag.SkiSlopes = skiSlopeStates;
+        return View();
+    }
+
+    [HttpPost("SkiSlopeState/Add")]
+    public async Task<IActionResult> AddSkiSlopeStateAsync(SkiSlopeRequest request, CancellationToken cancellationToken)
+    {
+        int partitionsNumber = await ProxyHelper.GetPartitionsNumberByUri(ServiceFabricConstants.Persister);
+        int index = 0;
+
+        for (int i = 0; i < partitionsNumber; i++, index++)
+        {
+            IPersister proxy = ServiceProxy.Create<IPersister>(
+                new Uri(ServiceFabricConstants.Persister), 
+                new ServicePartitionKey(index % partitionsNumber));
+
+            await proxy.AddSkiSlopeStateAsync(new SkiSlopeState(
                 place:      request.Place, 
-                date:       request.Date, 
+                date:       DateTime.UtcNow, 
                 number:     request.Number, 
                 name:       request.Name, 
                 condition:  request.Condition, 
                 details:    request.Details));
         }
 
-        return View("Index");
+        return RedirectToAction("Index");
     }
 }

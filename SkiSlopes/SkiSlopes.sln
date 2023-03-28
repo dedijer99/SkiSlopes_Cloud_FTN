@@ -7,14 +7,16 @@ Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "SkiSlopes", "SkiSlopes\SkiS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "API", "API\API.csproj", "{3201BA55-C5E2-4A87-A95B-0CCB9B8FFA08}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Persister", "Persister\Persister.csproj", "{5F6B9C03-02C1-4A3B-A72C-B6AA66FFEA75}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Persister", "Persister\Persister.csproj", "{5F6B9C03-02C1-4A3B-A72C-B6AA66FFEA75}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{A10F4EFD-458E-4644-A9FF-4CCDA66B7B2B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "Common\Common.csproj", "{A10F4EFD-458E-4644-A9FF-4CCDA66B7B2B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3874C047-3CE0-4EFD-8B0F-79A4B77AD6FD}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableStorage", "TableStorage\TableStorage.csproj", "{AFC0441E-4405-484F-B93F-42F14E474208}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -60,6 +62,14 @@ Global
 		{A10F4EFD-458E-4644-A9FF-4CCDA66B7B2B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A10F4EFD-458E-4644-A9FF-4CCDA66B7B2B}.Release|x64.ActiveCfg = Release|Any CPU
 		{A10F4EFD-458E-4644-A9FF-4CCDA66B7B2B}.Release|x64.Build.0 = Release|Any CPU
+		{AFC0441E-4405-484F-B93F-42F14E474208}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFC0441E-4405-484F-B93F-42F14E474208}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFC0441E-4405-484F-B93F-42F14E474208}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AFC0441E-4405-484F-B93F-42F14E474208}.Debug|x64.Build.0 = Debug|Any CPU
+		{AFC0441E-4405-484F-B93F-42F14E474208}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFC0441E-4405-484F-B93F-42F14E474208}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFC0441E-4405-484F-B93F-42F14E474208}.Release|x64.ActiveCfg = Release|Any CPU
+		{AFC0441E-4405-484F-B93F-42F14E474208}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

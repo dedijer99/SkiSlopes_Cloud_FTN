@@ -5,5 +5,7 @@ namespace Common.Interfaces;
 
 public interface IPersister : IService
 {
-    public Task AddSkiSlopeState(SkiSlopeState skiSlopeState);  
+    Task AddSkiSlopeStateAsync(SkiSlopeState skiSlopeState);  
+    Task<List<SkiSlopeState>> GetAllSkiSlopeStatesAsync();
+    Task<List<SkiSlopeState>> GetAllSkiSlopeStatesReportedBeforeProvidedTimestampAsync(DateTime dateTime);
 }

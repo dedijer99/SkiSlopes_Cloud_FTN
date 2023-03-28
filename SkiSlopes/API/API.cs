@@ -11,6 +11,7 @@ using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Microsoft.ServiceFabric.Data;
+using Persister.Storage;
 
 namespace API
 {
@@ -38,6 +39,7 @@ namespace API
 
                         var builder = WebApplication.CreateBuilder();
 
+                        builder.Services.AddHostedService<TableRefresher>();
                         builder.Services.AddSingleton<StatelessServiceContext>(serviceContext);
                         builder.WebHost
                                     .UseKestrel()

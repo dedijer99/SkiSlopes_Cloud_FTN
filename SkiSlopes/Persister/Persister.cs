@@ -6,6 +6,10 @@ using Common.Interfaces;
 using Common.Models;
 using Microsoft.ServiceFabric.Data;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
+using System.Net;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.ComponentModel;
 
 namespace Persister;
 
@@ -14,20 +18,95 @@ namespace Persister;
 /// </summary>
 internal sealed class Persister : StatefulService, IPersister
 {
+    private const string AllSkiSlopesStates = "weatherSlopeStates";
     private IReliableDictionary2<Guid, SkiSlopeState> _skiSlopeStates;
+    private readonly HttpClient _httpClient;
 
-    public Persister(StatefulServiceContext context)
+    public Persister(
+        StatefulServiceContext context)
         : base(context)
-    { }
-
-    public async Task AddSkiSlopeState(SkiSlopeState skiSlopeState)
     {
-        _skiSlopeStates = await StateManager.GetOrAddAsync<IReliableDictionary2<Guid, SkiSlopeState>>("slopeStates");
+        _httpClient = new HttpClient();
+    }
+
+    public async Task AddSkiSlopeStateAsync(SkiSlopeState skiSlopeState)
+    {
+        _skiSlopeStates = await StateManager.GetOrAddAsync<IReliableDictionary2<Guid, SkiSlopeState>>(AllSkiSlopesStates);
         using ITransaction transaction = StateManager.CreateTransaction();
+        skiSlopeState.Weather = await GetWeatherForPlaceAsync(skiSlopeState.Place);
         await _skiSlopeStates.AddAsync(transaction, skiSlopeState.Id, skiSlopeState);
         await transaction.CommitAsync();
     }
-        
+
+    public async Task<List<SkiSlopeState>> GetAllSkiSlopeStatesReportedBeforeProvidedTimestampAsync(DateTime dateTime)
+    {
+        List<SkiSlopeState> skiSlopeStatesList = new();
+        Microsoft.ServiceFabric.Data.IAsyncEnumerator<KeyValuePair<Guid, SkiSlopeState>> enumerator = await GetAsyncEnumerator();
+
+        while (await enumerator.MoveNextAsync(default))
+        {
+            KeyValuePair<Guid, SkiSlopeState> current = enumerator.Current;
+            if (current.Value.Date < dateTime)
+                skiSlopeStatesList.Add(current.Value);
+        }
+
+        return skiSlopeStatesList;
+    }
+
+    private async Task<Microsoft.ServiceFabric.Data.IAsyncEnumerator<KeyValuePair<Guid, SkiSlopeState>>> GetAsyncEnumerator()
+    {
+        _skiSlopeStates = await StateManager.GetOrAddAsync<IReliableDictionary2<Guid, SkiSlopeState>>(AllSkiSlopesStates);
+        using ITransaction transaction = StateManager.CreateTransaction();
+        Microsoft.ServiceFabric.Data.IAsyncEnumerable<KeyValuePair<Guid, SkiSlopeState>> skiSlopeStates = await _skiSlopeStates.CreateEnumerableAsync(transaction);
+        Microsoft.ServiceFabric.Data.IAsyncEnumerator<KeyValuePair<Guid, SkiSlopeState>> enumerator = skiSlopeStates.GetAsyncEnumerator();
+
+        return enumerator;
+    }
+
+    public async Task<List<SkiSlopeState>> GetAllSkiSlopeStatesAsync()
+    {
+        List<SkiSlopeState> skiSlopeStatesList = new();
+        Microsoft.ServiceFabric.Data.IAsyncEnumerator<KeyValuePair<Guid, SkiSlopeState>> enumerator = await GetAsyncEnumerator();
+
+        while (await enumerator.MoveNextAsync(default))
+        {
+            KeyValuePair<Guid, SkiSlopeState> current = enumerator.Current;
+            skiSlopeStatesList.Add(current.Value);
+        }
+
+        return skiSlopeStatesList;
+    }
+
+    public async Task<Weather> GetWeatherForPlaceAsync(string skiSlopePlace)
+    {
+        string url = string.Format("https://api.openweathermap.org/data/2.5/weather?q={0}&appid=ee89cb80a57b008a5ca9b94bd300f41b", skiSlopePlace);
+
+        double temperature;
+        double windspeed;
+        double clouds;
+        try
+        {
+            //Weather? weather = await _httpClient.GetFromJsonAsync<Weather>(url);
+            var client = new WebClient();
+            var content = client.DownloadString(url);
+
+            var obj = JsonConvert.DeserializeObject<JObject>(content);
+
+            double tempInKelvin = Double.Parse(obj["main"]["temp"].ToString());
+            temperature = Math.Round(tempInKelvin - 273.15, 2);
+
+            windspeed = Double.Parse(obj["wind"]["speed"].ToString());
+            clouds = Double.Parse(obj["clouds"]["all"].ToString());
+
+            return new Weather(temperature, clouds, windspeed);
+        }
+        catch
+        {
+            ServiceEventSource.Current.Message("Not connected to OpenWeather!");
+            return null;
+        }
+    }
+
     /// <summary>
     /// Optional override to create listeners (e.g., HTTP, Service Remoting, WCF, etc.) for this service replica to handle client or user requests.
     /// </summary>
