@@ -9,7 +9,6 @@ using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using System.Net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using TableStorage;
 
 namespace Persister;
 
@@ -75,9 +74,6 @@ internal sealed class Persister : StatefulService, IPersister
 
         return skiSlopeStatesList;
     }
-
-    public async Task<List<SkiSlopeState>> GetAllHistoryOfSkiSlopeStatesAsync() =>
-        await TableStorageService.GetAllSkiSlopeStates();
 
     public static Weather? GetWeatherForPlaceAsync(string skiSlopePlace)
     {

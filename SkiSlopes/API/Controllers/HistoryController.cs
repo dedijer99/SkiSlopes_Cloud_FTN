@@ -6,33 +6,19 @@ using Microsoft.ServiceFabric.Services.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 using System.Fabric;
 
-namespace API.Controllers
+namespace API.Controllers;
+
+public class HistoryController : Controller
 {
-    public class HistoryController : Controller
+    public async Task<IActionResult> Index()
     {
-        public async Task<IActionResult> Index()
-        {
-            List<SkiSlopeState> skiSlopeStates = new();
+        List<SkiSlopeState> skiSlopeStates = new();
 
-            FabricClient fabricClient = new();
-            int partitionsNumber = (await fabricClient
-                .QueryManager
-                .GetPartitionListAsync(new Uri(ServiceFabricConstants.Persister))).Count;
-            int index = 0;
+        ITableStorage proxy = ServiceProxy.Create<ITableStorage>(new Uri(ServiceFabricConstants.TableStorage));
+        List<SkiSlopeState> slopes = await proxy.GetAllSkiSlopeStates();
+        skiSlopeStates.AddRange(slopes);
 
-            for (int i = 0; i < partitionsNumber; i++, index++)
-            {
-                IPersister proxy = ServiceProxy.Create<IPersister>(
-                    new Uri(ServiceFabricConstants.Persister),
-                    new ServicePartitionKey(index % partitionsNumber));
-
-                var slopes = await proxy.GetAllHistoryOfSkiSlopeStatesAsync();
-
-                skiSlopeStates.AddRange(slopes);
-            }
-
-            ViewBag.SkiSlopes = skiSlopeStates;
-            return View();
-        }
+        ViewBag.SkiSlopes = skiSlopeStates;
+        return View();
     }
 }

@@ -7,13 +7,13 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 using System.Fabric;
 
-namespace TableStorage;
+namespace AzureTableStorage;
 
 public class TableRefresher : BackgroundService
 {
     private static async Task AddToTableAsync(List<SkiSlopeStateTable> skiSlopeStates)
     {
-        CloudStorageAccount storageAccount = CloudStorageAccount.Parse(TableStorageService.ConnectionString);
+        CloudStorageAccount storageAccount = CloudStorageAccount.Parse(AzureTableStorage.ConnectionString);
         CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
         CloudTable table = tableClient.GetTableReference("SkiSlopeState");
         await table.CreateIfNotExistsAsync();

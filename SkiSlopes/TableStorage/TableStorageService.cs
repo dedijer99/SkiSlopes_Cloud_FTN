@@ -17,8 +17,10 @@ public static class TableStorageService
         List<SkiSlopeState> skiSlopeStates = new();
         foreach (SkiSlopeStateTable entity in await table.ExecuteQuerySegmentedAsync(tableQuery, default))
         {
-            var skiSlopeState = new SkiSlopeState(entity.Place, entity.Date, entity.Number, entity.Name, (Common.Enums.SkiSlopeCondition)entity.Condition, entity.Details);
-            skiSlopeState.Weather = new Weather(double.Parse(entity.Temperature), double.Parse(entity.Clouds), double.Parse(entity.WindSpeed));
+            SkiSlopeState skiSlopeState = new(entity.Place, entity.Date, entity.Number, entity.Name, (Common.Enums.SkiSlopeCondition)entity.Condition, entity.Details)
+            {
+                Weather = new Weather(double.Parse(entity.Temperature), double.Parse(entity.Clouds), double.Parse(entity.WindSpeed))
+            };
             skiSlopeStates.Add(skiSlopeState);
         }
 

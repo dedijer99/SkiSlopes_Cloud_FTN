@@ -8,5 +8,4 @@ public interface IPersister : IService
     Task AddSkiSlopeStateAsync(SkiSlopeState skiSlopeState);  
     Task<List<SkiSlopeState>> GetAllSkiSlopeStatesAsync();
     Task<List<SkiSlopeState>> GetAllSkiSlopeStatesReportedBeforeProvidedTimestampAsync(DateTime dateTime);
-    Task<List<SkiSlopeState>> GetAllHistoryOfSkiSlopeStatesAsync();
 }
